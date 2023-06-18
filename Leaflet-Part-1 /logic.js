@@ -12,18 +12,18 @@ function createFeatures(earthquakeData){
 
     // Give each feature a popup describing the place and time of the earthquakes
     function onEachFeature(feature, layer){
-        layer.bindPopup(`<h3>Where: ${feature.properties.place}</h3><hr><p>Time: ${new Date(feature.properties.time)}</p><hr><p>Magnitude: ${feature.properties.mag}</p><hr><p>Number of "Felt" Reports: ${feature.properties.felt}`);
+        layer.bindPopup(`<h3>Where: ${feature.properties.place}</h3><hr><p>Time: ${new Date(feature.properties.time)}</p><hr><p>Magnitude: ${feature.properties.mag}</p><hr><p>Depth: ${feature.geometry.coordinates[2]}`);
     }
 
     // Create a GeoJSON layer containing the features array on the earthquakeData object
     function createCircleMarker(feature, latlng){
        let options = {
-        radius:feature.properties.mag*2,
-        fillColor: chooseColor(feature.properties.mag),
-        color: chooseColor(feature.properties.mag),
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.5
+        radius:feature.properties.mag*3, //increase markersize by mag
+        fillColor: chooseColor(feature.geometry.coordinates[2]), 
+        color: "#000",
+        weight: 0.5,
+        opacity: 0.5,
+        fillOpacity: 0.8
        } 
        return L.circleMarker(latlng,options);
     }
@@ -38,21 +38,13 @@ function createFeatures(earthquakeData){
 }
 
 // Circles color palette based on mag (feature) data marker: data markers should reflect the magnitude of the earthquake by their size and the depth of the earthquake by color. Earthquakes with higher magnitudes should appear larger, and earthquakes with greater depth should appear darker in color.
-function chooseColor(mag){
-    switch(true){
-        case(1.0 <= mag && mag <= 2.5):
-            return "#00FF00"; // 
-        case (2.5 <= mag && mag <=4.0):
-            return "#9ACD32";
-        case (4.0 <= mag && mag <=5.5):
-            return "#FFD700";
-        case (5.5 <= mag && mag <= 8.0):
-            return "#FFA500";
-        case (8.0 <= mag && mag <=20.0):
-            return "#FF4500";
-        default:
-            return "#E2FFAE";
-    }
+function chooseColor(depth){
+  return depth > 90 ? '#d73027' :
+          depth > 70 ? '#fc8d59' :
+          depth > 50 ? '#fee08b' :
+          depth > 30 ? '#d9ef8b' :
+          depth > 10 ? '#91cf60' :
+                       '#1a9850' ;          
 }
 
 // Create map legend to provide context for map data
@@ -60,15 +52,15 @@ let legend = L.control({position: 'bottomright'});
 
 legend.onAdd = function() {
     let div = L.DomUtil.create('div', 'info legend');
-    let grades = [1.0, 2.5, 4.0, 5.5, 8.0];
+    let grades = [10, 30, 50, 70, 90];
     let labels = [];
-    let legendInfo = "<h4>Magnitude</h4>";
+    let legendInfo = "<h4>Depth</h4>";
 
     div.innerHTML = legendInfo
 
     // go through each magnitude item to label and color the legend
     // push to labels array as list item
-    for (var i = 0; i < grades.length; i++) {
+    for (let i = 0; i < grades.length; i++) {
           labels.push('<ul style="background-color:' + chooseColor(grades[i] + 1) + '"> <span>' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '' : '+') + '</span></ul>');
         }
 
